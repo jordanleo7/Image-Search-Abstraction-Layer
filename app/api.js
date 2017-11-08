@@ -1,7 +1,7 @@
-module.exports = function(app, searchModel, request) {
-  
+module.exports = function(app, searchModel, request, fetch) {
+
   // Example query usage:
-  // https://img-search-abstractionlayer.glitch.me/lolcats%20funny?offset=10
+  // https://img-search-abstractionlayer.glitch.me/lolcats%20funny?offset=2
   // https://img-search-abstractionlayer.glitch.me/latest
   // [ { "snippet": "", "url": "", "context": "", "thumbnail": "" } ]
   // latest: [ { "term": "", "when": "" } ] 
@@ -18,28 +18,23 @@ module.exports = function(app, searchModel, request) {
     var newSearch = new searchModel({ search: parameter, time: date });
     // Search parameter
     var searchQuery = 'cats';
+    // Google custom search url 
+    var url = 'https://www.googleapis.com/customsearch/v1?key=' + process.env.G_KEY + '&' + 'cx=' + process.env.CX + '&q=' + searchQuery;
+    var results;
+    
+    fetch(url)
+      .then(function(response) {
+        return response.json();
+      }).then(function(json) {
+        console.log(json);
+        results = json;
+      }).catch(function(error) {
+        console.log(error);
+      });
 
-    request.get('https://www.googleapis.com/customsearch/v1?key=' + process.env.G_KEY + '&' + 'cx=' + process.env.CX + '&q=' + searchQuery, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-
-          
-          // I want to get body.items but it doesn't work
-          
-          
-          res.send(body);
-        
-
-        }
-      })
-
-
-
-     
-          
+    res.send(results);
     
   });
   
-  
-
   
 }

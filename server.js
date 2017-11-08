@@ -19,9 +19,9 @@ https://img-sal.herokuapp.com/latest
 var fs = require('fs');
 var express = require('express');
 var app = express();
-
-
 var request = require('request');
+var fetch = require("node-fetch");
+
 var mongoose = require('mongoose');
 var api = require('./app/api.js');
 var Schema = mongoose.Schema;
@@ -35,7 +35,7 @@ var searchModel = mongoose.model('searchModel', imageSearchSchema);
 // Connect to schema model
 var mongouri = process.env.MONGOLAB_URI;
 // app/api.js
-api(app, searchModel, request);
+api(app, searchModel, request, fetch);
 
 
 
