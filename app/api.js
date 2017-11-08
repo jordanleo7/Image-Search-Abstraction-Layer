@@ -22,8 +22,8 @@ module.exports = function(app, searchModel, request) {
     request.get('https://www.googleapis.com/customsearch/v1?key=' + process.env.G_KEY + '&' + 'cx=' + process.env.CX + '&q=' + searchQuery, function (error, response, body) {
         if (!error && response.statusCode == 200) {
 
-          var json = JSON.parse(body);
           
+          // I want to get body.items but it doesn't work
           
           
           res.send(body);
