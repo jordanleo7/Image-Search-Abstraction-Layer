@@ -29,8 +29,9 @@ module.exports = function(app, mongodb, mongoose, searchModel, fetch) {
     // Get parameter values for Google custom search
     var searchQuery = req.query.q || req.params[0];
     var searchOffset = req.query.offset || 1;
+    console.log(searchOffset, searchQuery);
     // Google custom search url 
-    var url = 'https://www.googleapis.com/customsearch/v1?key=' + process.env.G_KEY + '&cx=' + process.env.CX + '&start=' + searchOffset + '&q=' + searchQuery;
+    var url = 'https://www.googleapis.com/customsearch/v1?key=' + process.env.G_KEY + '&cx=' + process.env.CX + '&start=' + searchOffset + '&q=' + encodeURIComponent(searchQuery);
     // Filtered search results will be pushed to here
     var results = [];
     // Use node-fetch to get search results
@@ -39,7 +40,7 @@ module.exports = function(app, mongodb, mongoose, searchModel, fetch) {
         return response.json();
       }).then(function(json) {
         // Google only allows 100 searches per day. If app doesn't start, check for this error in console log.
-        console.log(json.error.errors[0].reason)
+        //if (json == undefined) {console.log(json.error.errors[0].reason)};
         for (var i = 0; i < 10; i++) {
           results.push({snippet: json.items[i].snippet, link: json.items[i].link, displayLink: json.items[i].displayLink });
         }
