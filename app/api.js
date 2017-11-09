@@ -19,22 +19,22 @@ module.exports = function(app, searchModel, request, fetch) {
     // Search parameter
     var searchQuery = 'cats';
     // Google custom search url 
-    var url = 'https://www.googleapis.com/customsearch/v1?key=' + process.env.G_KEY + '&' + 'cx=' + process.env.CX + '&q=' + searchQuery;
-    var results;
-    
+    var url = 'https://www.googleapis.com/customsearch/v1?key=' + process.env.G_KEY + '&' + 'cx=' + process.env.CX + '&num=10&q=' + searchQuery;
+    // Filtered results will be pushed to here
+    var results = [];
+    // Use node-fetch to get search results
     fetch(url)
       .then(function(response) {
         return response.json();
       }).then(function(json) {
-        console.log(json);
-        results = json;
+        for (var i = 0; i < json.items.length; i++) {
+          results.push({snippet: json.items[i].snippet, link: json.items[i].link, displayLink: json.items[i].displayLink });
+        }
+        res.send(results);
       }).catch(function(error) {
         console.log(error);
       });
-
-    res.send(results);
     
   });
-  
   
 }
