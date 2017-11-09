@@ -29,9 +29,9 @@ module.exports = function(app, mongodb, mongoose, searchModel, fetch) {
     // Get parameter values for Google custom search
     var searchQuery = req.query.q || req.params[0];
     var searchOffset = req.query.offset || 1;
-    console.log(searchOffset, searchQuery);
+    console.log(searchOffset, encodeURIComponent(req.params[0]));
     // Google custom search url 
-    var url = 'https://www.googleapis.com/customsearch/v1?key=' + process.env.G_KEY + '&cx=' + process.env.CX + '&start=' + searchOffset + '&q=' + encodeURIComponent(searchQuery);
+    var url = 'https://www.googleapis.com/customsearch/v1?key=' + process.env.G_KEY + '&cx=' + process.env.CX + '&start=' + searchOffset + '&q=' + encodeURIComponent(req.params[0]);
     // Filtered search results will be pushed to here
     var results = [];
     // Use node-fetch to get search results
@@ -39,21 +39,30 @@ module.exports = function(app, mongodb, mongoose, searchModel, fetch) {
       .then(function(response) {
         return response.json();
       }).then(function(json) {
+        console.log(json);
         // Google only allows 100 searches per day. If app doesn't start, check for this error in console log.
-        //if (json == undefined) {console.log(json.error.errors[0].reason)};
-        for (var i = 0; i < 10; i++) {
-          results.push({snippet: json.items[i].snippet, link: json.items[i].link, displayLink: json.items[i].displayLink });
-        }
-        res.send(results);
-      
-        //
-        // Create search history document
-        //
-        var date = new Date();
-        var newSearch = new searchModel({ search: searchQuery, time: date });
-        newSearch.save(function (err) {
-          if (err) return err;
-        });
+        if (json == undefined) {
+          res.send ('Daily 100 free search limit exceeded');
+          console.log(json.error.errors[0].reason);
+          // Check if search results found.
+          } else if (json.items == undefined) {
+            res.send ('No search results found')
+            console.log('No search results found')
+          } else {
+            for (var i = 0; i < 10; i++) {
+              results.push({snippet: json.items[i].snippet, link: json.items[i].link, displayLink: json.items[i].displayLink });
+            }
+            res.send(results);
+
+            //
+            // Create search history document
+            //
+            var date = new Date();
+            var newSearch = new searchModel({ search: searchQuery, time: date });
+            newSearch.save(function (err) {
+              if (err) return err;
+            });
+          }
       
       }).catch(function(error) {
         console.log(error);
