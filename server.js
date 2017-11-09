@@ -8,10 +8,6 @@ User Story: I can paginate through the responses by adding a ?offset=2 parameter
 
 User Story: I can get a list of the most recently submitted search strings.
 
-Example query usage:
-https://img-sal.herokuapp.com/lolcats%20funny?offset=10
-https://img-sal.herokuapp.com/latest
-
  * ***************************************************/
 
 'use strict';
@@ -19,11 +15,21 @@ https://img-sal.herokuapp.com/latest
 var fs = require('fs');
 var express = require('express');
 var app = express();
-var request = require('request');
 var fetch = require("node-fetch");
-
+var mongodb = require('mongodb').MongoClient;
 var mongoose = require('mongoose');
 var api = require('./app/api.js');
+
+// Set up default mongoose connection
+mongoose.connect(process.env.MONGOLAB_URI, {
+  useMongoClient: true
+});
+// Get the default connection
+var db = mongoose.connection;
+// Bind connection to error event (to get notification of connection errors)
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
+
 var Schema = mongoose.Schema;
 // Create schema
 var imageSearchSchema = mongoose.Schema({
@@ -33,9 +39,12 @@ var imageSearchSchema = mongoose.Schema({
 // Turn the schema into a model
 var searchModel = mongoose.model('searchModel', imageSearchSchema);
 // Connect to schema model
-var mongouri = process.env.MONGOLAB_URI;
+// var mongouri = process.env.MONGOLAB_URI;
+
+
+
 // app/api.js
-api(app, searchModel, request, fetch);
+api(app, mongodb, mongoose, searchModel, fetch);
 
 
 
@@ -63,11 +72,6 @@ app.route('/_api/package.json')
     });
   });
   
-app.route('/')
-    .get(function(req, res) {
-		  res.sendFile(process.cwd() + '/views/index.html');
-    })
-
 // Respond not found to all the wrong routes
 app.use(function(req, res, next){
   res.status(404);
